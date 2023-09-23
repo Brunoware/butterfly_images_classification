@@ -2,6 +2,7 @@ from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
 from cvxopt import matrix, solvers
 import numpy as np
 
+solvers.options['show_progress'] = False
 
 class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
     def __init__(self, kernel = 'rbf', C = 1.0, degree = 3, gamma = 'scale', coef0 = 0.0, 
