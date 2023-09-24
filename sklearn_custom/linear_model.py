@@ -42,18 +42,18 @@ class LogisticRegression(BaseEstimator, TransformerMixin, ClassifierMixin):
         return 1 / (1 + np.exp(-self._hyperplane(X, w)))
     
     def _get_penalties(self, penalty):
-        penalties = {'l1': lambda n, w, lam, gamma: (lam / n),
-                            'l2': lambda n, w, lam, gamma: (2 * lam / n) * np.sum(w),
-                            'elasticnet': lambda n, w, lam, gamma: gamma * (lam / n) +
-                                                                (1 - gamma) * (2 * lam / n) * np.sum(w),
-                            None : lambda n, w, lam, gamma: 0}
-        return penalties[penalty]
-    
-    def _get_penalties_derivatives(self, penalty):
-        penalties = {'l1': lambda n, w, lam, gamma: (lam / n) * np.sum(np.abs(w)),
+        penalties = {'l1': lambda n, w, lam, gamma: (lam/ n) * np.sum(np.abs(w)),
                     'l2': lambda n, w, lam, gamma: (lam / n) * np.sum(w ** 2),
                     'elasticnet': lambda n, w, lam, gamma: gamma * (lam / n) * np.sum(np.abs(w)) +
                                                         (1 - gamma) * (lam / n) * np.sum(w ** 2),
+                    None : lambda n, w, lam, gamma: 0}
+        return penalties[penalty]
+    
+    def _get_penalties_derivatives(self, penalty):
+        penalties = {'l1': lambda n, w, lam, gamma,: lam / n,
+                    'l2': lambda n, w, lam, gamma: (2 * lam / n) * np.sum(w),
+                    'elasticnet': lambda n, w, lam, gamma: gamma * (lam / n)  +
+                                                        (1 - gamma) * (2 * lam / n) * np.sum(w),
                     None : lambda n, w, lam, gamma: 0}
         return penalties[penalty]
     

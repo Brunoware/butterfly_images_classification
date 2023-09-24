@@ -27,7 +27,7 @@ class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
         return np.random.uniform(-limit, limit, size = (input_size,))
     
     def _get_gamma(self, x, gamma):
-        gamma_type = {'scale': lambda x: 1.0 / (x.shape[1] * x.var()),
+        gamma_type = {'scale': lambda x: max(1.0 / (x.shape[1] * x.var(), 1e-3)),
                             'auto': lambda x: 1.0 / x.shape[1]}
         
         return gamma_type[gamma](x) if isinstance(gamma, str) else gamma
@@ -42,7 +42,6 @@ class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
         return np.dot(a, b.T)
     
     def _poly_kernel(self, a, b):
-        gamma = self._get_gamma(a, self.gamma)
         return (np.dot(a, b.T) + self.coef0) ** self.degree
     
     def _sigmoid_kernel(self, a, b):
