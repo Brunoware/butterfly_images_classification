@@ -42,11 +42,19 @@ class LogisticRegression(BaseEstimator, TransformerMixin, ClassifierMixin):
         return 1 / (1 + np.exp(-self._hyperplane(X, w)))
     
     def _get_penalties(self, penalty):
-        penalties = {'l1': lambda n, w, lam, gamma: (lam / n) * np.sum(np.abs(w)),
-                            'l2': lambda n, w, lam, gamma: (lam / n) * np.sum(w ** 2),
-                            'elasticnet': lambda n, w, lam, gamma: gamma * (lam / n) * np.sum(np.abs(w)) +
-                                                                (1 - gamma) * (lam / n) * np.sum(w ** 2),
+        penalties = {'l1': lambda n, w, lam, gamma: (lam / n),
+                            'l2': lambda n, w, lam, gamma: (2 * lam / n) * np.sum(w),
+                            'elasticnet': lambda n, w, lam, gamma: gamma * (lam / n) +
+                                                                (1 - gamma) * (2 * lam / n) * np.sum(w),
                             None : lambda n, w, lam, gamma: 0}
+        return penalties[penalty]
+    
+    def _get_penalties_derivatives(self, penalty):
+        penalties = {'l1': lambda n, w, lam, gamma: (lam / n) * np.sum(np.abs(w)),
+                    'l2': lambda n, w, lam, gamma: (lam / n) * np.sum(w ** 2),
+                    'elasticnet': lambda n, w, lam, gamma: gamma * (lam / n) * np.sum(np.abs(w)) +
+                                                        (1 - gamma) * (lam / n) * np.sum(w ** 2),
+                    None : lambda n, w, lam, gamma: 0}
         return penalties[penalty]
     
     def _loss_function(self, X, y, w, epsilon):
@@ -57,7 +65,8 @@ class LogisticRegression(BaseEstimator, TransformerMixin, ClassifierMixin):
     def _derivatives(self, X, y, w):
         y_pred = self._sigmoid(X, w)
         error = y - y_pred
-        return (1 / X.shape[0]) * np.matmul(error, -X)
+        penalties = self._get_penalties_derivatives(self.penalty)(X.shape[0], w, self.lam, self.gamma)
+        return (1 / X.shape[0]) * np.matmul(error, -X) + penalties
     
     def _change_parameters(self, w, derivatives, alpha):
         return w - alpha * derivatives
