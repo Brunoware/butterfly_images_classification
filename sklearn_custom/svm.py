@@ -27,7 +27,7 @@ class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
         return np.random.uniform(-limit, limit, size = (input_size,))
     
     def _get_gamma(self, x, gamma):
-        gamma_type = {'scale': lambda x: max(1.0 / (x.shape[1] * x.var(), 1e-3)),
+        gamma_type = {'scale': lambda x: max(1.0 / (x.shape[1] * x.var()), 1e-3),
                             'auto': lambda x: 1.0 / x.shape[1]}
         
         return gamma_type[gamma](x) if isinstance(gamma, str) else gamma
