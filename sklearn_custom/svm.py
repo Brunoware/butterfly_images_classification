@@ -10,7 +10,7 @@ class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
                  probability = False, random_state = None):
         self.kernel = kernel
         self.C = C
-        self.degree = 3
+        self.degree = degree
         self.gamma = gamma
         self.coef0 = coef0
         self.probability = probability
