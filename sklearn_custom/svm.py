@@ -5,7 +5,7 @@ import numpy as np
 solvers.options['show_progress'] = False
 
 class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
-    def __init__(self, kernel = 'rbf', C = 1.0, degree = 3, gamma = 'scale', coef0 = 0.0, 
+    def __init__(self, kernel = 'rbf', C = 1.5, degree = 3, gamma = 'scale', coef0 = 0.0, 
                  probability = False, random_state = None):
         self.kernel = kernel
         self.C = C
@@ -52,7 +52,7 @@ class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
         n, m = X.shape
         y = y.astype(float)
         K = getattr(self, f"_{self.kernel}_kernel")(X, X)
-        P = matrix(np.outer(y,y) * K)
+        P = matrix(C * np.outer(y,y) * K)
         if np.iscomplexobj(P):
             raise ValueError("Complex data not supported")
         q = matrix(-np.ones(n))
