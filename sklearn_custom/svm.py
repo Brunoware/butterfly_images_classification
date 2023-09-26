@@ -1,11 +1,12 @@
 from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
+from sklearn.metrics.pairwise import linear_kernel, rbf_kernel, sigmoid_kernel, polynomial_kernel, laplacian_kernel
 from cvxopt import matrix, solvers
 import numpy as np
 
 solvers.options['show_progress'] = False
 
 class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
-    def __init__(self, kernel = 'rbf', C = 1.5, degree = 3, gamma = 'scale', coef0 = 0.0, 
+    def __init__(self, kernel = 'rbf', C = 1.5, degree = 3, gamma = None, coef0 = 0.0, 
                  probability = False, random_state = None):
         self.kernel = kernel
         self.C = C
@@ -26,27 +27,21 @@ class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
         limit = np.sqrt(6 / (input_size + 1))
         return np.random.uniform(-limit, limit, size = (input_size,))
     
-    def _get_gamma(self, x, gamma):
-        gamma_type = {'scale': lambda x: max(1.0 / (x.shape[1] * x.var()), 1e-3),
-                            'auto': lambda x: 1.0 / x.shape[1]}
-        
-        return gamma_type[gamma](x) if isinstance(gamma, str) else gamma
+    # Kernels to transform X matrix
+    def _rbf_kernel(self, X, Y):
+        return rbf_kernel(X = X, Y = Y, gamma = self.gamma)
     
-    def _rbf_kernel(self, a, b):
-        gamma = self._get_gamma(a, self.gamma)
-        a = a.astype('float')
-        b = b.astype('float')
-        return np.exp(-(gamma / a.shape[1]) * np.sum((a - b[:, np.newaxis]) ** 2, axis = -1)).T
+    def _linear_kernel(self, X, Y):
+        return linear_kernel(X = X, Y = Y)
     
-    def _linear_kernel(self, a, b):
-        return np.dot(a, b.T)
+    def _poly_kernel(self, X, Y):
+        return polynomial_kernel(X = X, Y = Y, degree = self.degree, gamma = self.gamma, coef0 = self.coef0)
     
-    def _poly_kernel(self, a, b):
-        return (np.dot(a, b.T) + self.coef0) ** self.degree
+    def _sigmoid_kernel(self, X, Y):
+        return sigmoid_kernel(X = X, Y = Y, gamma = self.gamma, coef0 = self.coef0)
     
-    def _sigmoid_kernel(self, a, b):
-        gamma = self._get_gamma(a, self.gamma)
-        return np.tanh(gamma * np.dot(a, b.T))
+    def _laplacian_kernel(self, X, Y):
+        return laplacian_kernel(X = X, Y = Y, gamma = self.gamma)
         
     def _get_alphas(self, X, y, C):
         n, m = X.shape
@@ -91,8 +86,7 @@ class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
             # converge alphas and get K
             alphas, self.K, self.sol = self._get_alphas(self.X, self.y, self.C)
         except Exception as e:
-            # if theres an error the kernel is changed to rbf
-            # y cambiar el kernel a uno más seguro, como RBF.
+            # if there's an error the kernel is changed to rbf
             print(f"Error kernel {self.kernel}", e)
             print("Changing kernel to rbf")
             self.kernel = 'rbf' 
