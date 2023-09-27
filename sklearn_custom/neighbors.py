@@ -54,6 +54,9 @@ class KNeighborsClassifier(BaseEstimator, TransformerMixin, ClassifierMixin):
         self.X, self.y = self._init_matrix(X, y)
         self.tree = self._get_data_structure(self.X)
         return self
+        
+    def transform(self, X, y):
+        pass
     
     def predict(self, X):
         # it does it for each testing vector de matrix has
