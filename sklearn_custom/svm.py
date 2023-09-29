@@ -47,7 +47,7 @@ class SVC(BaseEstimator, TransformerMixin, ClassifierMixin):
         n, m = X.shape
         y = y.astype(float)
         K = getattr(self, f"_{self.kernel}_kernel")(X, X)
-        P = matrix(C * np.outer(y,y) * K)
+        P = matrix(np.outer(y,y) * K)
         if np.iscomplexobj(P):
             raise ValueError("Complex data not supported")
         q = matrix(-np.ones(n))
