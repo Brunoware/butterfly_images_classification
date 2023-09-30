@@ -80,7 +80,7 @@ class LogisticRegression(BaseEstimator, TransformerMixin, ClassifierMixin):
         
         # iterations till converging
         for _ in range(self.max_iter):
-            loss = self._loss_function(X, y, self.weights, self.tol)
+            self.loss = self._loss_function(X, y, self.weights, self.tol)
             dw = self._derivatives(X, y, self.weights)
             self.weights = self._change_parameters(self.weights, dw, self.learning_rate)
             
@@ -102,3 +102,7 @@ class LogisticRegression(BaseEstimator, TransformerMixin, ClassifierMixin):
         X = self._adapt_x_matrix(X)
         probabilities = self._sigmoid(X, self.weights)
         return np.column_stack([np.log(1 - probabilities), np.log(probabilities)])
+    
+    @property
+    def get_loss_across_epochs(self):
+        return self.loss
