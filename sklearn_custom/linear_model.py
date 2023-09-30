@@ -12,8 +12,7 @@ class LogisticRegression(BaseEstimator, TransformerMixin, ClassifierMixin):
         self.lam = lam
         self.gamma = gamma
         self.random_state = random_state
-
-        
+     
     def _add_bias(self, X):
         return np.hstack((np.ones((X.shape[0], 1)), X))
     
@@ -77,15 +76,34 @@ class LogisticRegression(BaseEstimator, TransformerMixin, ClassifierMixin):
         
         # initializing random weights
         self.weights = self._initialize_weights(X.shape[1])
+        self.loss_list = []
         
         # iterations till converging
         for _ in range(self.max_iter):
-            self.loss = self._loss_function(X, y, self.weights, self.tol)
+            loss = self._loss_function(X, y, self.weights, self.tol)
             dw = self._derivatives(X, y, self.weights)
             self.weights = self._change_parameters(self.weights, dw, self.learning_rate)
+            self.loss_list.append(loss)
             
         return self
     
+    def compute_loss(self, x, y, x_test, y_test):
+
+        x, y = self._adapt_df_matrix(x, y)
+        x_test, y_train = self._adapt_df_matrix(x_test, y_test)
+        w = self._initialize_weights(x.shape[1])
+        loss_training = []
+        loss_testing = []
+        for _ in range(self.max_iter):
+            loss_training_value = self._loss_function(x, y, w, self.tol)
+            loss_testing_value = self._loss_function(x_test, y_test, w, self.tol)
+            dw = self._derivatives(x, y, w)
+            w =  self._change_parameters(w, dw, self.learning_rate)
+            loss_training.append(loss_training_value)
+            loss_testing.append(loss_testing_value)
+            
+        return np.array(loss_training), np.array(loss_testing)
+        
     def transform(self , X, y = None):
         pass
     
@@ -105,4 +123,4 @@ class LogisticRegression(BaseEstimator, TransformerMixin, ClassifierMixin):
     
     @property
     def get_loss_across_epochs(self):
-        return self.loss
+        return self.loss_list
