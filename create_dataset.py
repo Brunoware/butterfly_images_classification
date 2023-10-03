@@ -6,9 +6,9 @@ import pandas as pd
 
 # CONSTANTS AND VARIABLES
 FOLDER_PATH = 'datasets/Mariposas'
-OUTPUT_FILEPATH = 'datasets/wavelet_tranformed_images_2.csv'
-NEW_SIZE_IMAGES = (256, 256) # 256 x 256 pixels
-LEVEL = 6
+OUTPUT_FILEPATH = 'datasets/wavelet_tranformed_images.csv'
+NEW_SIZE_IMAGES = (512, 512) # 512 x 512 pixels
+LEVEL = 7
 characteristic_vectors = []
 target_list = []
 file_list = os.listdir(FOLDER_PATH)
@@ -25,7 +25,7 @@ for file_name in file_list:
     gray_image = read_resize_gray(file_name)
     
     # extracting features acording to the set levels
-    coeffs = pywt.wavedecn(gray_image, 'db3', mode = 'symmetric', level = LEVEL)
+    coeffs = pywt.wavedec2(gray_image, 'db3', mode = 'symmetric', level = LEVEL)
     
     # selecting the extracted feature which is the first value of the array
     # then it is flattened
