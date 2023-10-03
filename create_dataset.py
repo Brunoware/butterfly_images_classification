@@ -3,50 +3,41 @@ import cv2
 import pywt
 import numpy as np
 import pandas as pd
-from sklearn.decomposition import PCA
 
 # CONSTANTS AND VARIABLES
-FOLDER_PATH = 'datasets/Mariposas/images'
-OUTPUT_FILEPATH = 'final.csv'
-NEW_SIZE_IMAGES = (224, 224) # 224x224 pixels
-NUM_COMPONENTS_PCA = 240 # at least 80% cumulative variance ratio
+FOLDER_PATH = 'datasets/Mariposas'
+OUTPUT_FILEPATH = 'datasets/wavelet_tranformed_images_2.csv'
+NEW_SIZE_IMAGES = (256, 256) # 256 x 256 pixels
+LEVEL = 6
 characteristic_vectors = []
 target_list = []
 file_list = os.listdir(FOLDER_PATH)
 
-# PCA
-pca = PCA(n_components=NUM_COMPONENTS_PCA)
-
-for file_name in file_list:
+def read_resize_gray(file_name):
     file_path = os.path.join(FOLDER_PATH, file_name)
     image = cv2.imread(file_path)
     resized_image = cv2.resize(image, NEW_SIZE_IMAGES)
     gray_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
-    coeffs = pywt.dwt2(gray_image, 'bior1.3')
-    approx, (horizontal_detail, vertical_detail, diagonal_detail) = coeffs
-    flattened_coeffs = np.concatenate([approx.flatten(), horizontal_detail.flatten(),
-                            vertical_detail.flatten(), diagonal_detail.flatten()])
-    normalized_coeffs = (flattened_coeffs - flattened_coeffs.mean()) / flattened_coeffs.std()
-    characteristic_vectors.append(normalized_coeffs)
+    return gray_image
+
+for file_name in file_list:
+    # reading and converting image into a 2D-gray one
+    gray_image = read_resize_gray(file_name)
+    
+    # extracting features acording to the set levels
+    coeffs = pywt.wavedecn(gray_image, 'db3', mode = 'symmetric', level = LEVEL)
+    
+    # selecting the extracted feature which is the first value of the array
+    # then it is flattened
+    cA = coeffs[0].flatten()
+    
+    # adding to the corresponding lists
+    characteristic_vectors.append(cA)
     target_list.append(int(file_name[:3]))
+    
+# putting all together
+data_matrix = pd.DataFrame(np.vstack(characteristic_vectors))
+data_matrix['target'] = target_list
 
-data_matrix = np.vstack(characteristic_vectors)
-
-# Applying PCA
-principal_components = pca.fit_transform(data_matrix)
-
-explained_variance = pca.explained_variance_
-explained_variance_ratio = pca.explained_variance_ratio_
-cumulative_variance_ratio = np.cumsum(explained_variance_ratio)
-
-print("Varianza explicada por cada componente principal:")
-print(explained_variance)
-print("\nVarianza explicada relativa (proporción) por cada componente principal:")
-print(explained_variance_ratio)
-print("\nVarianza acumulada explicada:")
-print(cumulative_variance_ratio)
-
-# Convert to pandas, then to csv file
-df = pd.DataFrame(principal_components)
-df['target'] = target_list
-df.to_csv(OUTPUT_FILEPATH, index=False)
+# saving to csv file
+data_matrix.to_csv(OUTPUT_FILEPATH, index = False) 
